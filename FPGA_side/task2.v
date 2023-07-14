@@ -1,4 +1,4 @@
-module task0(
+module task2(
     input CLK,
 	input [15:0] in_op_node0,
     input [15:0] in_op_node1,
@@ -33,7 +33,7 @@ module task0(
     reg [31:0] r_counter_node0 = 32'b0;
     reg [31:0] r_counter_node1 = 32'b0;
 
-    localparam task_id = 8'b00000001;
+    localparam task_id = 8'b00000011;
 
     always @(posedge CLK) begin
         r_counter_node0 <= r_counter_node0 + 1;
@@ -74,23 +74,23 @@ module task0(
                 // ---------------------
                 // Particular State change
                 // ---------------------
-                16'b0000000100010000: next_state_node0 <= 2'b00; // Ready : 0001
-                16'b0000000100100000: next_state_node0 <= 2'b01; // Suspend : 0010
-                16'b0000000100110000: next_state_node0 <= 2'b10; // Wait : 0011
-                16'b0000000101000000: next_state_node0 <= 2'b11; // Kill : 0100
+                16'b0000001100010000: next_state_node0 <= 2'b00; // Ready : 0001
+                16'b0000001100100000: next_state_node0 <= 2'b01; // Suspend : 0010
+                16'b0000001100110000: next_state_node0 <= 2'b10; // Wait : 0011
+                16'b0000001101000000: next_state_node0 <= 2'b11; // Kill : 0100
 
                 // ---------------------
-                16'b0000000101010000: priority_node0 <= in_op_node0[3:0]; // Increase priority : 0101
-                16'b0000000101100000: next_exe_hit <= in_op_node0[3:0]; // Increase execution hit : 0110
+                16'b0000001101010000: priority_node0 <= in_op_node0[3:0]; // Increase priority : 0101
+                16'b0000001101100000: next_exe_hit <= in_op_node0[3:0]; // Increase execution hit : 0110
 
-                16'b0000000101110000: begin // Execute
+                16'b0000001101110000: begin // Execute
                     if (state_node0 == 2'b00 && exe_hit > 0) begin
                         next_exe_hit <= exe_hit - 1;
                         r_counter_node0 <= 0;
                     end
                 end
 
-                16'b0000000111000000: begin // Kill : 1100
+                16'b0000001111000000: begin // Kill : 1100
                     next_state_node0 <= 2'b11;
 					next_state_node1 <= 2'b11;
                 end
@@ -112,31 +112,31 @@ module task0(
             // 0100 | Kill  
             // 0101 | Increase priority 
             // 0110 | Increase execution hit
-            // 1100 | Kill overall       
+            // 1100 | Kill overall    
             // 0000 | Not defined
             // ---------------------
 
-            case (in_op_node1 & 16'b0000000011111111)
+            case (in_op_node1 & 16'b0000111111110000)
                 // ---------------------
                 // Particular State change
                 // ---------------------
-                16'b0000000100010000: next_state_node1 <= 2'b00; // Ready : 0001
-                16'b0000000100100000: next_state_node1 <= 2'b01; // Suspend : 0010
-                16'b0000000100110000: next_state_node1 <= 2'b10; // Wait : 0011
-                16'b0000000101000000: next_state_node1 <= 2'b11; // Kill : 0100
+                16'b0000001100010000: next_state_node1 <= 2'b00; // Ready : 0001
+                16'b0000001100100000: next_state_node1 <= 2'b01; // Suspend : 0010
+                16'b0000001100110000: next_state_node1 <= 2'b10; // Wait : 0011
+                16'b0000001101000000: next_state_node1 <= 2'b11; // Kill : 0100
 
                 // ---------------------
-                16'b0000000101010000: priority_node1 <= in_op_node1[3:0]; // Increase priority : 0101
-                16'b0000000101100000: next_exe_hit <= in_op_node1[3:0]; // Increase execution hit : 0110
+                16'b0000001101010000: priority_node1 <= in_op_node1[3:0]; // Increase priority : 0101
+                16'b0000001101100000: next_exe_hit <= in_op_node1[3:0]; // Increase execution hit : 0110
 
-                16'b0000000101110000: begin // Execute
+                16'b0000001101110000: begin // Execute
                     if (state_node1 == 2'b00 && exe_hit > 0) begin
                         next_exe_hit <= exe_hit - 1;
                         r_counter_node1 <= 0;
                     end
                 end
 
-                16'b0000000111000000: begin // Kill : 1100
+                16'b0000001111000000: begin // Kill : 1100
                     next_state_node1 <= 2'b11;
 					next_state_node0 <= 2'b11;
                 end

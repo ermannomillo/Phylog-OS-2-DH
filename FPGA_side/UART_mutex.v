@@ -11,13 +11,13 @@ module UART_mutex(
 		output wire out_IRQ_node1
 		);
 		
-		// Function tag 1100
+		// Function tag = 1011
 		
 		reg [1:0] lock = 3;
 		reg [1:0] next_lock;
 		
-		localparam [15:0] stop_sequence = 64767;  // 1111 tag 1111 1111
-		localparam [15:0] start_sequence = 64512; // 1111 tag 0000 prty	
+		localparam [15:0] stop_sequence  = 64256;  // 1111 tag 1111 1111
+		localparam [15:0] start_sequence = 64511; // 1111 tag 0000 prty	
 		
 		localparam [7:0] UART_sequence_IRQ = 78;
 		
@@ -29,16 +29,18 @@ module UART_mutex(
 		reg IRQ_node1;
 		
 		// --------------------------
-		//  Recency bit for request
+		//  Request priority
 		// --------------------------
-		//  00 : most recent 
-		//  11 : access not requested
+		//  1111 : highest 
+		//   ...
+		//
+		//  0000 : access not requested
 		// --------------------------
 		
 		// --------------------------
 		//  Lock
 		// --------------------------
-		//  00 : locked to mcu 0
+		//  00 : locked to node 0
 		//    ...
 		//  11 : not locked
 		// --------------------------
@@ -46,19 +48,19 @@ module UART_mutex(
 	always @* begin : Combinational
         case (lock)
             2'b00:
-                next_lock = (input_op_node0 == stop_sequence) ? 2'b11 : 2'b00;
+                next_lock = (in_op_node0 == stop_sequence) ? 2'b11 : 2'b00;
 
             2'b01:
-                next_lock = (input_op_node1 == stop_sequence) ? 2'b11 : 2'b01;
+                next_lock = (in_op_node1 == stop_sequence) ? 2'b11 : 2'b01;
 
             2'b11:
                 if (in_IRQ == 0) begin
-                    if ((((input_op_node0 ^ start_sequence) <= 15) && ((input_op_node0 ^ start_sequence) != 0)) &&
-                        (((input_op_node1 ^ start_sequence) <= 15) && ((input_op_node1 ^ start_sequence) != 0))) begin
-                        next_lock = (input_op_node0 ^ start_sequence) >= (input_op_node1 ^ start_sequence) ? 2'b00 : 2'b01;
-                    end else if ((input_op_node0 ^ start_sequence) <= 15 && (input_op_node0 ^ start_sequence) != 0) begin
+                    if ((((in_op_node0 ^ start_sequence) <= 15) && ((in_op_node0 ^ start_sequence) != 0)) &&
+                        (((in_op_node1 ^ start_sequence) <= 15) && ((in_op_node1 ^ start_sequence) != 0))) begin
+                        next_lock = (in_op_node0 ^ start_sequence) >= (in_op_node1 ^ start_sequence) ? 2'b00 : 2'b01;
+                    end else if ((in_op_node0 ^ start_sequence) <= 15 && (in_op_node0 ^ start_sequence) != 0) begin
                         next_lock = 2'b00;
-                    end else if ((input_op_node1 ^ start_sequence) <= 15 && (input_op_node1 ^ start_sequence) > 0) begin
+                    end else if ((in_op_node1 ^ start_sequence) <= 15 && (in_op_node1 ^ start_sequence) > 0) begin
                         next_lock = 2'b01;
                     end else begin
                         next_lock = 2'b11;
@@ -75,15 +77,15 @@ module UART_mutex(
     always @(posedge CLK) begin : Sequential
         case (lock)
             2'b00:
-                if ((input_op_node0 ^ start_sequence) <= 15) begin
+                if ((in_op_node0 ^ start_sequence) <= 15) begin
                     out_driver <= 8'b0;
                     out_synchro <= 16'b0;
                     out_reset <= 1;
                     IRQ_node0 <= 0;
                     IRQ_node1 <= 0;
                 end else begin
-                    if (input_op_node0 != 0) begin
-                        out_driver <= input_op_node0;
+                    if (in_op_node0 != 0) begin
+                        out_driver <= in_op_node0;
                         out_synchro <= {8'b00000001, in_peripheral};
                         IRQ_node0 <= (in_peripheral == UART_sequence_IRQ) ? 1 : 0;
                     end else begin
@@ -94,15 +96,15 @@ module UART_mutex(
                 end
 
             2'b01:
-                if ((input_op_node1 ^ start_sequence) <= 15) begin
+                if ((in_op_node1 ^ start_sequence) <= 15) begin
                     out_driver <= 8'b0;
                     out_synchro <= 16'b0;
                     out_reset <= 1;
                     IRQ_node0 <= 0;
                     IRQ_node1 <= 0;
                 end else begin
-                    if (input_op_node1 != 0) begin
-                        out_driver <= input_op_node1;
+                    if (in_op_node1 != 0) begin
+                        out_driver <= in_op_node1;
                         out_synchro <= {8'b00000010, in_peripheral};
                         IRQ_node1 <= (in_peripheral == UART_sequence_IRQ) ? 1 : 0;
                     end else begin

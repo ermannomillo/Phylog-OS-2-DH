@@ -12,8 +12,6 @@ module ESPIC(
 		);
 		
 		
-		// IRQ scheduler priority
-		
 		reg [2:0] priority_IRQ1_node0 = 2;
 		reg [2:0] priority_IRQ1_node1 = 4;
 		
@@ -144,6 +142,22 @@ module ESPIC(
 		always @(posedge CLK) begin
 		
 			case(in_op_node0)
+			
+				16'b0011111100010001 : begin 
+					next_out_IRQ2_0 <= 1;
+				end
+				
+				16'b0011111100010010 : begin 
+					next_out_IRQ2_1 <= 1;
+				end
+				
+			endcase
+	
+		end
+		
+		always @(posedge CLK) begin
+		
+			case(in_op_node1)
 			
 				16'b0011111100010001 : begin 
 					next_out_IRQ2_0 <= 1;

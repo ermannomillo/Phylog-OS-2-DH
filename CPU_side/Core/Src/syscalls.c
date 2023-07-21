@@ -29,6 +29,9 @@
 #include <time.h>
 #include <sys/time.h>
 #include <sys/times.h>
+#include <kernel/scheduler.h>
+#include <kernel/f_syscall.h>
+#include <stm32f1xx.h>
 
 
 /* Variables */
@@ -47,13 +50,22 @@ void initialise_monitor_handles()
 
 int _getpid(void)
 {
-  return 1;
+  return currentTaskIdx;
 }
 
 int _kill(int pid, int sig)
 {
-  (void)pid;
-  (void)sig;
+
+	void * args[3];
+
+	uint8_t inBuffer[2];
+	uint8_t flags = (uint8_t) sig;
+
+	args[0] = &pid;
+	args[1] = &flags;
+	args[2] = &inBuffer;
+	kCall(14, args);
+
   errno = EINVAL;
   return -1;
 }
@@ -168,6 +180,7 @@ int _fork(void)
 
 int _execve(char *name, char **argv, char **env)
 {
+
   (void)name;
   (void)argv;
   (void)env;

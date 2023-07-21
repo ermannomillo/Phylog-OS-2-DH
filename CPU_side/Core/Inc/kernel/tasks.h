@@ -1,5 +1,5 @@
 
-#include <kernel/syscall.h>
+#include <kernel/f_syscall.h>
 
 void task1(void);
 void task2(void);

@@ -46,7 +46,7 @@ void selectNextTask()
 		if(sysTicks >= tasks[i].waitToTick) {
 			spiOutBuffer[0] = 0x10 + i;
 			spiOutBuffer[1] = 0x10;	 // Put the task in ready list, IFF it is blocked.
-			HAL_SPI_TransmitReceive(&spi_handler, (uint8_t *) &spiOutBuffer, &spiInBuffer, 2, 100);
+			HAL_SPI_TransmitReceive(&spi_handler, (uint8_t *) spiOutBuffer, spiInBuffer, 2, 100);
 
 			if( spiInBuffer[0] + (((uint16_t)spiInBuffer[0] <<4 )) <= 15 && spiInBuffer[0] + (((uint16_t)spiInBuffer[0] <4 )) > 0) {
 				speculatedNextTask = spiInBuffer[0];
@@ -68,12 +68,12 @@ void selectNextTask()
 		// Assemble and send execution confirm
 		spiOutBuffer[0] = (((uint16_t) spiInBuffer[0]) << 8);
 		spiOutBuffer[1] = 0xF0;
-		HAL_SPI_TransmitReceive(&spi_handler, (uint8_t *) &spiOutBuffer, &spiInBuffer, 2, 100);
+		HAL_SPI_TransmitReceive(&spi_handler, (uint8_t *) spiOutBuffer, spiInBuffer, 2, 100);
 	} else {
 		currentTaskIdx = speculatedNextTask;
 	}
 
-	if (currentTaskIdx >= TASK_NUMBER_MAX || tasks[currentTaskIdx].psp == 0) {
+	if (currentTaskIdx >= TASK_NUMBER_MAX) {
         currentTaskIdx = 0;
 	}
 	run_ptr = &tasks[currentTaskIdx];
@@ -220,7 +220,7 @@ void delayTask(uint32_t ticks) {
     spiInBuffer[0]= 0x00;
     spiInBuffer[1]= 0x00;
 
-    HAL_SPI_TransmitReceive(&spi_handler, (uint8_t *) &spiOutBuffer, &spiInBuffer, 2, 100);
+    HAL_SPI_TransmitReceive(&spi_handler, (uint8_t *) spiOutBuffer, spiInBuffer, 2, 100);
 
     if(spiInBuffer[0] + (((uint16_t)spiInBuffer[0] <<4 )) <= 15) {
     	speculatedNextTask = spiInBuffer[0];

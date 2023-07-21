@@ -89,7 +89,7 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART2_UART_Init();
-  //MX_SPI1_Init();
+  MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
 
   // Enable TRCENA
@@ -165,6 +165,11 @@ void SystemClock_Config(void)
   }
 }
 
+/**
+  * @brief SPI1 Initialization Function
+  * @param None
+  * @retval None
+  */
 static void MX_SPI1_Init(void)
 {
 

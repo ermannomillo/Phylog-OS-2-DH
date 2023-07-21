@@ -2,7 +2,7 @@
 #include <kernel/syscall.h>
 
 
-void  kExit() {
+void  kExit(void) {
 	// save kernel context
 	__ASM volatile ("MRS     R12, MSP");
 	__ASM volatile ("STMDB   R12!, {R4-R11}");  //push R4-R11

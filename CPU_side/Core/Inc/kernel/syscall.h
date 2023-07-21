@@ -34,7 +34,7 @@
 }
 
 
-void kExit();
+void kExit(void);
 void kMutexCloseConn(uint8_t mutexId, uint8_t * inBuffer);
 void kMutexOpenConn(uint8_t mutexId, uint8_t * inBuffer);
 void kMutexRAMAddByte(uint8_t mutexId, uint8_t outByte, uint8_t * inBuffer);

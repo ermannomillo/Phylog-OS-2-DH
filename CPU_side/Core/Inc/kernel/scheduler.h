@@ -4,12 +4,12 @@
 
 #include "stm32f1xx_hal.h"
 #include <stdint.h>
-//#include <core_cm3.h>
+#include "core_cm3.h"
 
 
 /* RAM */
 #define RAM_START         (0x20000000u)
-#define RAM_SIZE          (128 * 1024) // 128 KB
+#define RAM_SIZE          (20 * 1024) // 20 KB
 
 /* Stacks */
 #define MAIN_STACK        (RAM_START + RAM_SIZE)

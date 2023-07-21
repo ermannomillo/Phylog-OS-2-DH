@@ -1,6 +1,5 @@
 
 #include <kernel/scheduler.h>
-#include "core_cm3.h"
 
 
 SPI_HandleTypeDef spi_handler;
@@ -35,34 +34,41 @@ void saveCurrentKSP(uint32_t ksp) {
 
 void selectNextTask()
 {
-	uint16_t spiOutBuffer = 0;
-	uint16_t spiInBuffer= 0;
+	uint8_t spiOutBuffer[2];
+	 spiOutBuffer[0] = 0x00;
+	 spiOutBuffer[1] = 0x00;
+
+	uint8_t spiInBuffer[2];
+	 spiInBuffer[0] = 0x00;
+	 spiInBuffer[1] = 0x00;
 
 	for(int i=0; i<TASK_NUMBER_MAX; i++) {
 		if(sysTicks >= tasks[i].waitToTick) {
-			uint16_t spiOutBuffer = (1 << 12) + (i << 8) + (1 << 4);  // Put the task in ready list, IFF it is blocked.
-			HAL_SPI_TransmitReceive(&spi_handler, &spiOutBuffer, &spiInBuffer, 1, 100);
+			spiOutBuffer[0] = 0x10 + i;
+			spiOutBuffer[1] = 0x10;	 // Put the task in ready list, IFF it is blocked.
+			HAL_SPI_TransmitReceive(&spi_handler, (uint8_t *) &spiOutBuffer, &spiInBuffer, 2, 100);
 
-			if( spiInBuffer <= 15 && spiInBuffer > 0) {
-				speculatedNextTask = spiInBuffer;
-				 run_ptr = &tasks[currentTaskIdx];
+			if( spiInBuffer[0] + (((uint16_t)spiInBuffer[0] <<4 )) <= 15 && spiInBuffer[0] + (((uint16_t)spiInBuffer[0] <4 )) > 0) {
+				speculatedNextTask = spiInBuffer[0];
 			}
 	    }
 	}
 
 	if(speculatedNextTask) {
-		uint16_t spiOutBuffer = 0;
+		spiOutBuffer[0] = 0x00;
+		spiOutBuffer[1] = 0x00;
 
 		do {
-			HAL_SPI_TransmitReceive(&spi_handler, &spiOutBuffer, &spiInBuffer, 1, 100);
-		} while((spiInBuffer & 0x0FFF) >= 0x00FF); // Loop until a task ID is received
+			HAL_SPI_TransmitReceive(&spi_handler, (uint8_t *) spiOutBuffer, spiInBuffer, 2, 100);
+		} while(((((uint16_t) spiInBuffer[0]) & 0x0F) << 4) + spiInBuffer[1] >= 0x00FF); // Loop until a task ID is received
 
 		// It sends a request every circa 10 microseconds.
-		currentTaskIdx = (spiInBuffer & 0x00FF);
+		currentTaskIdx = spiInBuffer[0];
 
 		// Assemble and send execution confirm
-		spiOutBuffer = (((uint32_t) spiInBuffer) << 8) + 0x00F0;
-		HAL_SPI_TransmitReceive(&spi_handler, &spiOutBuffer, &spiInBuffer, 1, 100);
+		spiOutBuffer[0] = (((uint16_t) spiInBuffer[0]) << 8);
+		spiOutBuffer[1] = 0xF0;
+		HAL_SPI_TransmitReceive(&spi_handler, (uint8_t *) &spiOutBuffer, &spiInBuffer, 2, 100);
 	} else {
 		currentTaskIdx = speculatedNextTask;
 	}
@@ -70,6 +76,7 @@ void selectNextTask()
 	if (currentTaskIdx >= TASK_NUMBER_MAX || tasks[currentTaskIdx].psp == 0) {
         currentTaskIdx = 0;
 	}
+	run_ptr = &tasks[currentTaskIdx];
 }
 
 void idleMain(void) {
@@ -95,10 +102,7 @@ void addTask(void (*handler)) {
 
 
   if(i >= TASK_NUMBER_MAX) {
-    printf("Can not register a new task anymore!\n");
     return;
-  } else {
-    printf("Register a task %p at slot %i\n", handler, i);
   }
 
 
@@ -124,7 +128,7 @@ void addTask(void (*handler)) {
   *(--psp) = 0x04040404u; // Dummy R4
 
   // save PSP
-  tasks[i].psp = (uint32_t)psp;
+  tasks[i].psp = (uint32_t *) psp;
 
   // calculate new KSP
    uint32_t* ksp = (uint32_t*)(MAIN_STACK - (i+1)*TASK_STACK_SIZE);
@@ -148,7 +152,7 @@ void addTask(void (*handler)) {
    *(--ksp) = 0x04040404u; // Dummy R4
 
    // save KSP
-   tasks[i].ksp = (uint32_t)ksp;
+   tasks[i].ksp = (uint32_t *)ksp;
 
    tasks[i].kernel_flag = 0;
 
@@ -160,6 +164,7 @@ void startScheduler()
 {
   // start with the first task
   currentTaskIdx = 0;
+  run_ptr = &tasks[currentTaskIdx];
 
   // prepare PSP of the first task
   __asm volatile("BL getCurrentPSP"); // return PSP in R0
@@ -206,12 +211,19 @@ void schedule(uint32_t priv)
 void delayTask(uint32_t ticks) {
   if(currentTaskIdx) {
     tasks[currentTaskIdx].waitToTick = sysTicks + ticks;
-    uint16_t spiOutBuffer = currentTaskIdx << 8 + (2 << 4);
-    uint16_t  spiInBuffer = 0;
-    HAL_SPI_TransmitReceive(&spi_handler, &spiOutBuffer, &spiInBuffer, 1, 100);
 
-    if( spiInBuffer <= 15) {
-    	speculatedNextTask = spiInBuffer;
+    uint8_t spiOutBuffer[2];
+    spiOutBuffer[0] = 0x00 + currentTaskIdx;
+    spiOutBuffer[1] = (2 << 4);
+
+    uint8_t  spiInBuffer[2];
+    spiInBuffer[0]= 0x00;
+    spiInBuffer[1]= 0x00;
+
+    HAL_SPI_TransmitReceive(&spi_handler, (uint8_t *) &spiOutBuffer, &spiInBuffer, 2, 100);
+
+    if(spiInBuffer[0] + (((uint16_t)spiInBuffer[0] <<4 )) <= 15) {
+    	speculatedNextTask = spiInBuffer[0];
     }
     schedule(0); // unprivileged
   }

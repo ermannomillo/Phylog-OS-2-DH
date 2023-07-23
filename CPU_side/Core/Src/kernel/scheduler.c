@@ -48,7 +48,7 @@ void selectNextTask()
 			spiOutBuffer[1] = 0x10;	 // Put the task in ready list, IFF it is blocked.
 			HAL_SPI_TransmitReceive(&spi_handler, (uint8_t *) spiOutBuffer, spiInBuffer, 2, 100);
 
-			if( spiInBuffer[0] + (((uint16_t)spiInBuffer[0] <<4 )) <= 15 && spiInBuffer[0] + (((uint16_t)spiInBuffer[0] <4 )) > 0) {
+			if( spiInBuffer[0] + (((uint16_t)spiInBuffer[0] <<4 )) <= 15 && spiInBuffer[0] + (((uint16_t)spiInBuffer[0] <<4 )) > 0) {
 				speculatedNextTask = spiInBuffer[0];
 			}
 	    }

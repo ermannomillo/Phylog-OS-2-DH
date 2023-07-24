@@ -47,11 +47,13 @@ module UART_mutex(
 		
 	always @* begin : Combinational
         case (lock)
-            2'b00: next_lock = (in_op_node0 == stop_sequence) ? 2'b11 : 2'b00;
+            2'b00:
+                next_lock = (in_op_node0 == stop_sequence) ? 2'b11 : 2'b00;
 
-            2'b01: next_lock = (in_op_node1 == stop_sequence) ? 2'b11 : 2'b01;
+            2'b01:
+                next_lock = (in_op_node1 == stop_sequence) ? 2'b11 : 2'b01;
 
-            2'b11: begin
+            2'b11:
                 if (in_IRQ == 0) begin
                     if ((((in_op_node0 ^ start_sequence) <= 15) && ((in_op_node0 ^ start_sequence) != 0)) &&
                         (((in_op_node1 ^ start_sequence) <= 15) && ((in_op_node1 ^ start_sequence) != 0))) begin
@@ -66,15 +68,15 @@ module UART_mutex(
                 end else begin
                     next_lock = in_IRQ;
                 end
-				end
 
-            default: next_lock = 2'b11;
+            default:
+                next_lock = 2'b11;
         endcase
     end
 
     always @(posedge CLK) begin : Sequential
         case (lock)
-            2'b00: begin
+            2'b00:
                 if ((in_op_node0 ^ start_sequence) <= 15) begin
                     out_driver <= 8'b0;
                     out_synchro <= 16'b0;
@@ -92,9 +94,8 @@ module UART_mutex(
                     end
                     out_reset <= 1;
                 end
-				end
 
-            2'b01: begin
+            2'b01:
                 if ((in_op_node1 ^ start_sequence) <= 15) begin
                     out_driver <= 8'b0;
                     out_synchro <= 16'b0;
@@ -112,27 +113,22 @@ module UART_mutex(
                     end
                     out_reset <= 1;
                 end
-					 
-				end
 
-            2'b11 :   begin
+            2'b11:
+                lock <= next_lock;
                 out_driver <= 8'b0;
                 out_synchro <= 16'b0;
-					 lock <= next_lock;
                 out_reset <= 0;
                 IRQ_node0 <= 0;
                 IRQ_node1 <= 0;
-					 
-				end
 
-            default: begin
+            default:
+                lock <= next_lock;
                 out_driver <= 8'b0;
                 out_synchro <= 16'b0;
-					 lock <= next_lock;
                 out_reset <= 0;
                 IRQ_node0 <= 0;
                 IRQ_node1 <= 0;
-				end
         endcase
     end
 

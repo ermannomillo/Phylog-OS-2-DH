@@ -37,17 +37,17 @@ module ESPIC(
 
 	// -----------------------------------------
 	//
-	// IRQ0 : Send a 1 ms signal every 5000 ms 
+	// IRQ0 : Send a 1 ms signal every 50000 ms 
 	//
 	// -----------------------------------------
 	
 		always @(posedge CLK) begin
 		
-			if((counter_IRQ0 >= 999999900) && (counter_IRQ0 <= 1000000000) )  begin
+			if((counter_IRQ0 >= 9999999000) && (counter_IRQ0 <= 10000000000) )  begin
 				counter_IRQ0 <= counter_IRQ0 + 1;
 				out_IRQ0 = 1;
 			end
-			else if(counter_IRQ0 <= 999999900) begin
+			else if(counter_IRQ0 <= 9999999000) begin
 				counter_IRQ0 <= counter_IRQ0 + 1;
 				out_IRQ0 <= 0;		
 			end 

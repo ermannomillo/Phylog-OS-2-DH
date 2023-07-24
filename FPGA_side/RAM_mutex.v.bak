@@ -195,7 +195,7 @@ module RAM_mutex(
 						if((in_op_node1 ^ start_sequence) <= 15) begin
 							out_synchro <=  16'b0000001000000000;
 							lock <= next_lock;
-						end
+						end3
 						else if((in_op_node1 & 16'b0011111100000000) == 3072) begin  // XX00 1100 XXXX XXXX : Read
 							out_synchro <= { 8'b00000010, matrix[(in_op_node0 & 16'b0000000011111111)+ frame_pointer]};
 							lock <= next_lock;

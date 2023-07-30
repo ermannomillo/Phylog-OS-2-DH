@@ -314,13 +314,13 @@ void kSemWait( uint16_t semId, uint16_t nodeId ) {
 	 uint16_t outBuffer;
 	 do {
 		 __disable_irq();
-		 outBuffer = 0xC000 + (semId << 8) + (nodeId << 12);
+		 outBuffer = 0x0000 + (semId << 8) + (nodeId << 12);
 		 HAL_SPI_TransmitReceive(&spi_handler, (uint16_t *)&outBuffer, (uint16_t *) &inBuffer, 1, 100);
 		 outBuffer = 0x0000 + (semId << 8) + 0x0020 + (nodeId << 12);
 		 HAL_SPI_TransmitReceive(&spi_handler, (uint16_t *)&outBuffer, (uint16_t *) &inBuffer, 1, 100);
 		 __enable_irq();
 	 }while(inBuffer !=  0x0000 + nodeId  && inBuffer != 0x2000 + nodeId);
-	 outBuffer = 0xC0FF + (semId << 8) + (nodeId << 12);
+	 outBuffer = 0x00FF + (semId << 8) + (nodeId << 12);
 	 HAL_SPI_TransmitReceive(&spi_handler, (uint16_t *)&outBuffer, (uint16_t *) &inBuffer, 1, 100);
 
 	 kExit(); // Exit kernel cooperatively
@@ -332,13 +332,13 @@ void kSemPost( uint8_t semId, uint16_t nodeId ) {
 	 uint16_t outBuffer;
 	 do {
 		 __disable_irq();
-		 outBuffer = 0xC000 + (semId << 8) + (nodeId << 12);
+		 outBuffer = 0x0000 + (semId << 8) + (nodeId << 12);
 		 HAL_SPI_TransmitReceive(&spi_handler, (uint16_t *)&outBuffer, (uint16_t *) &inBuffer, 1, 100);
 		 outBuffer =  0x0000 + (semId << 8) + 0x0020  + (nodeId << 12);
 		 HAL_SPI_TransmitReceive(&spi_handler, (uint16_t *)&outBuffer, (uint16_t *) &inBuffer, 1, 100);
 		 __enable_irq();
 	 }while(inBuffer !=  0x0000 + nodeId  && inBuffer != 0x1000 + nodeId);
-	 outBuffer = 0xC0FF + (semId << 8) + (nodeId << 12);
+	 outBuffer = 0x00FF + (semId << 8) + (nodeId << 12);
 	 HAL_SPI_TransmitReceive(&spi_handler, (uint16_t *)&outBuffer, (uint16_t *) &inBuffer, 1, 100);
 
 	 kExit(); // Exit kernel cooperatively

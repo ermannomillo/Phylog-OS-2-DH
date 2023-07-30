@@ -304,6 +304,7 @@ void kSemWait( uint16_t semId, uint16_t nodeId ) {
 	 outBuffer = 0xC0FF + (semId << 8) + (nodeId << 12);
 	 HAL_SPI_TransmitReceive(&spi_handler, (uint16_t *)&outBuffer, (uint16_t *) &inBuffer, 1, 100);
 
+	kExit(); // Exit kernel cooperatively
 }
 
 void kSemPost( uint8_t semId, uint16_t nodeId ) {
@@ -319,5 +320,7 @@ void kSemPost( uint8_t semId, uint16_t nodeId ) {
 	 }while(inBuffer !=  0x0000 + nodeId  && inBuffer != 0x1000 + nodeId);
 	 outBuffer = 0xC0FF + (semId << 8) + (nodeId << 12);
 	 HAL_SPI_TransmitReceive(&spi_handler, (uint16_t *)&outBuffer, (uint16_t *) &inBuffer, 1, 100);
+
+	kExit(); // Exit kernel cooperatively
 }
 

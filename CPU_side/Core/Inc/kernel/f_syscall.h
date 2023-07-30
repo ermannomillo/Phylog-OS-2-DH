@@ -6,7 +6,7 @@
 #include <kernel/scheduler.h>
 #include <stdint.h>
 #include <stdio.h>
-
+#include <stdlib.h>
 
 
 #define TASK0_ID	   1U

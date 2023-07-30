@@ -39,7 +39,7 @@ void selectNextTask()
 
 	for(int i=0; i<TASK_NUMBER_MAX; i++) {
 		if(sysTicks >= tasks[i].waitToTick) {
-			spiOutBuffer =  0x0010 + (((uint16_t) 0xA + i) << 8); // Put the task in ready list, IFF it is blocked.
+			spiOutBuffer =  0x0010 + (((uint16_t) 1 + i) << 8); // Put the task in ready list, IFF it is blocked.
 			HAL_SPI_TransmitReceive(&spi_handler, (uint16_t *) &spiOutBuffer, (uint16_t *) &spiInBuffer, 1, 100);
 
 			if( spiInBuffer <= 15 && spiInBuffer > 0) {

@@ -25,7 +25,7 @@
  extern "C" {
 #endif
 
-#define  _exit 					1
+#define  _exitK 					1
 #define  _mutexCloseConn		2
 #define  _mutexOpenConn			3
 #define  _mutexRAMAddByte		4
@@ -43,6 +43,8 @@
 #define  _taskIncreaseExehit	16
 #define  _rawComm				17
 #define  _blankComm 			18
+#define  _semPost				19
+#define  _semWait 				20
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */

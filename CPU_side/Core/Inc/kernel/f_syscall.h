@@ -7,6 +7,8 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stm32f1xx_it.h>
+
 
 
 #define TASK0_ID	   1U
@@ -20,6 +22,8 @@
 #define LED_MUTEX_ID  10U
 #define UART_MUTEX_ID 11U
 #define RAM_MUTEX_ID  12U
+#define EMPTY_SEM_ID  13U
+#define FULL_SEM_ID  14U
 #define ESPIC_ID 	  15U
 
 #define kCall(code, args) { \

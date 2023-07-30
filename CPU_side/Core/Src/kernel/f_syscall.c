@@ -275,18 +275,37 @@ void Queue_destroy(Queue * q){
 }
 
 void Queue_insert(Queue * q, void * item){
-    kSemWait(13, 2);
+	void * args[2];
+
+	uint16_t semId = EMPTY_SEM_ID ;
+	uint16_t moduleId = TASK0_ID;
+
+	args[0] = &semId;
+	args[1] = &moduleId;
+
+    kCall(_semWait, args);
     q->buffer[q->insert_pos] = item;
     q->insert_pos =  (q->insert_pos + 1) % q->size;
-    kSemPost(14, 2);
+    semId = FULL_SEM_ID ;
+    kCall(_semPost, args);
 }
 
 void * Queue_extract(Queue * q){
-    void * item;
-    kSemWait(14, 1);
+	void * item;
+	void * args[2];
+
+	uint16_t semId = FULL_SEM_ID ;
+	uint16_t moduleId = TASK0_ID;
+
+	args[0] = &semId;
+	args[1] = &moduleId;
+
+	kCall(_semWait, args);
+
     item = &(q->buffer[q->extract_pos]);
     q->extract_pos =  (q->extract_pos + 1) % q->size;
-    kSemPost(13, 1);
+    semId = EMPTY_SEM_ID ;
+    kCall(_semPost, args);
     return item;
 }
 
@@ -304,7 +323,8 @@ void kSemWait( uint16_t semId, uint16_t nodeId ) {
 	 outBuffer = 0xC0FF + (semId << 8) + (nodeId << 12);
 	 HAL_SPI_TransmitReceive(&spi_handler, (uint16_t *)&outBuffer, (uint16_t *) &inBuffer, 1, 100);
 
-	kExit(); // Exit kernel cooperatively
+	 kExit(); // Exit kernel cooperatively
+
 }
 
 void kSemPost( uint8_t semId, uint16_t nodeId ) {
@@ -321,6 +341,6 @@ void kSemPost( uint8_t semId, uint16_t nodeId ) {
 	 outBuffer = 0xC0FF + (semId << 8) + (nodeId << 12);
 	 HAL_SPI_TransmitReceive(&spi_handler, (uint16_t *)&outBuffer, (uint16_t *) &inBuffer, 1, 100);
 
-	kExit(); // Exit kernel cooperatively
+	 kExit(); // Exit kernel cooperatively
 }
 

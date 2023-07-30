@@ -187,7 +187,7 @@ void SVC_Handler_main(uint32_t* SP) {
     	saveKContext(SP);
 	    break;
 
-    case _exit 					:
+    case _exitK					:
     	*(tasks[currentTaskIdx].ksp + (TASK_STACK_SIZE - 2)) = (int32_t) kExit;
     	saveKContext(SP);
     		    break;
@@ -270,6 +270,15 @@ void SVC_Handler_main(uint32_t* SP) {
     	*(tasks[currentTaskIdx].ksp + (TASK_STACK_SIZE - 2)) = (int32_t) kBlankComm;
     	saveKContext(SP);
     		    break;
+    case _semPost				:
+        	*(tasks[currentTaskIdx].ksp + (TASK_STACK_SIZE - 2)) = (int32_t) kRawComm;
+        	saveKContext(SP);
+        		    break;
+
+    case _semWait			:
+        	*(tasks[currentTaskIdx].ksp + (TASK_STACK_SIZE - 2)) = (int32_t) kBlankComm;
+        	saveKContext(SP);
+        		    break;
 
 
     default:

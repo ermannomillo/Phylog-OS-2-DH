@@ -33,24 +33,37 @@
 		: );  	  \
 }
 
+typedef struct{
+    int size, insert_pos, extract_pos;
+    int empty, full;
+    void ** buffer;
+} Queue;
+
 
 void kExit(void);
-void kMutexCloseConn(uint8_t mutexId, uint8_t * inBuffer);
-void kMutexOpenConn(uint8_t mutexId, uint8_t * inBuffer);
-void kMutexRAMAddByte(uint8_t mutexId, uint8_t outByte, uint8_t * inBuffer);
-void kMutexRAMGetByte(uint8_t mutexId, uint8_t index, uint8_t * inBuffer);
-void kMutexRAMGarbFrame(uint8_t mutexId, uint8_t * inBuffer);
-void kMutexRAMAddFrame(uint8_t mutexId, uint8_t * inBuffer);
-void kMutexLEDLight(uint8_t mutexId, uint8_t outByte, uint8_t flags, uint8_t * inBuffer);
-void kMutexUARTAddByte(uint8_t mutexId, uint8_t outByte, uint8_t flags, uint8_t * inBuffer);
-void kTaskSuspend(uint8_t taskId, uint8_t flags, uint8_t * inBuffer);
-void kTaskWait(uint8_t taskId, uint8_t flags, uint8_t * inBuffer);
-void kTaskReady(uint8_t taskId, uint8_t flags, uint8_t * inBuffer);
-void kTaskKill(uint8_t taskId, uint8_t flags, uint8_t * inBuffer);
-void kTaskIncreasePriority(uint8_t taskId, uint8_t priority, uint8_t flags, uint8_t * inBuffer);
-void kTaskIncreaseExehit(uint8_t taskId, uint8_t exehit, uint8_t flags, uint8_t * inBuffer);
-void kRawComm(uint8_t moduleId, uint8_t flags,uint8_t payload, uint8_t * inBuffer);
-void kBlankComm ( uint8_t * inBuffer);
+void kMutexCloseConn(uint8_t mutexId, uint16_t * inBuffer);
+void kMutexOpenConn(uint8_t mutexId, uint16_t * inBuffer);
+void kMutexRAMAddByte(uint8_t mutexId, uint8_t outByte, uint16_t * inBuffer);
+void kMutexRAMGetByte(uint8_t mutexId, uint8_t index, uint16_t * inBuffer);
+void kMutexRAMGarbFrame(uint8_t mutexId, uint16_t * inBuffer);
+void kMutexRAMAddFrame(uint8_t mutexId, uint16_t * inBuffer);
+void kMutexLEDLight(uint8_t mutexId, uint8_t outByte, uint8_t flags, uint16_t * inBuffer);
+void kMutexUARTAddByte(uint8_t mutexId, uint8_t outByte, uint8_t flags, uint16_t * inBuffer);
+void kTaskSuspend(uint8_t taskId, uint8_t flags, uint16_t * inBuffer);
+void kTaskWait(uint8_t taskId, uint8_t flags, uint16_t * inBuffer);
+void kTaskReady(uint8_t taskId, uint8_t flags, uint16_t * inBuffer);
+void kTaskKill(uint8_t taskId, uint8_t flags, uint16_t * inBuffer);
+void kTaskIncreasePriority(uint8_t taskId, uint8_t priority, uint8_t flags, uint16_t * inBuffer);
+void kTaskIncreaseExehit(uint8_t taskId, uint8_t exehit, uint8_t flags, uint16_t * inBuffer);
+void kRawComm(uint8_t moduleId, uint8_t flags,uint8_t payload, uint16_t * inBuffer);
+void kBlankComm ( uint16_t * inBuffer);
+Queue * Queue_init(int N);
+void Queue_destroy(Queue * q);
+void Queue_insert(Queue * q, void * item);
+void * Queue_extract(Queue * q);
+void kSemWait( uint16_t semId, uint16_t nodeId );
+void kSemPost( uint8_t semId, uint16_t nodeId );
+
 
 
 #endif

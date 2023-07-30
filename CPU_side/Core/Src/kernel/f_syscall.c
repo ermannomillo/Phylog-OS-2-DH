@@ -22,132 +22,154 @@ void  kExit(void) {
 	__ASM volatile ("BX      LR ");
 }
 
-void kMutexCloseConn(uint8_t mutexId, uint8_t * inBuffer )
+void kMutexCloseConn(uint8_t mutexId, uint16_t * inBuffer )
 {
 	__disable_irq();
 	// Send to FPGA command: 1111 + Mutex ID + Release Sequence
-	uint8_t spiOutBuffer[2];
-
-	spiOutBuffer[0] = 0xF0 +  mutexId;
-	spiOutBuffer[1] = 0xFF;
-	HAL_SPI_TransmitReceive(&spi_handler, (uint8_t *) &spiOutBuffer, inBuffer, 2, 100);
+	uint16_t spiOutBuffer;
+	spiOutBuffer = (((uint16_t) mutexId) << 8) + 0xF0FF;
+	HAL_SPI_TransmitReceive(&spi_handler, (uint16_t *) &spiOutBuffer, inBuffer, 1, 100);
 	__enable_irq();
 	kExit(); // Exit kernel cooperatively
 }
 
-void kMutexOpenConn(uint8_t mutexId, uint8_t * inBuffer)
+void kMutexOpenConn(uint8_t mutexId, uint16_t * inBuffer)
 {
 	__disable_irq();
 
-	uint8_t spiOutBuffer[2];
-	spiOutBuffer[0] = 0xF0 + mutexId;
-	spiOutBuffer[1] = 0xFF;
-	HAL_SPI_TransmitReceive(&spi_handler, (uint8_t *) &spiOutBuffer, inBuffer, 2, 100);
-	if(inBuffer[0] + (((uint16_t)inBuffer[0] <<4 )) <= 15 && inBuffer[0] + (((uint16_t)inBuffer[0] <4 )) > 0) {
+	uint16_t spiOutBuffer;
+	spiOutBuffer =  (((uint16_t)  mutexId) << 8) + 0xF000;
+	HAL_SPI_TransmitReceive(&spi_handler, (uint16_t *) &spiOutBuffer, inBuffer, 1, 100);
+	if(*inBuffer <= 15 && *inBuffer > 0) {
 	    speculatedNextTask =*inBuffer;
 	}
 	__enable_irq();
 	kExit(); // Exit kernel cooperatively
 }
 
-void kMutexRAMAddByte(uint8_t mutexId, uint8_t outByte, uint8_t * inBuffer) {
-	__disable_irq();
-
-	uint8_t spiOutBuffer[2];
-	spiOutBuffer[0] = 0x10 + mutexId;
-	spiOutBuffer[1] = outByte;
-	HAL_SPI_TransmitReceive(&spi_handler, (uint8_t *) &spiOutBuffer, inBuffer, 2, 100);
-
-	__enable_irq();
-
-	kExit(); // Exit kernel cooperatively
-}
-
-void kMutexRAMGetByte(uint8_t mutexId, uint8_t index, uint8_t * inBuffer)
+void kMutexRAMAddByte(uint8_t mutexId, uint8_t outByte, uint16_t * inBuffer)
 {
 	__disable_irq();
 
-	uint8_t spiOutBuffer[2];
-	spiOutBuffer[0] = 0x00 + mutexId;
-	spiOutBuffer[1] = index;
-	HAL_SPI_TransmitReceive(&spi_handler, (uint8_t *) &spiOutBuffer, inBuffer, 2, 100);
+	uint16_t spiOutBuffer;
+	spiOutBuffer = 0x1000 + (((uint16_t) mutexId) << 8) + outByte;
+	HAL_SPI_TransmitReceive(&spi_handler, (uint16_t *) &spiOutBuffer, inBuffer, 1, 100);
+
 	__enable_irq();
+
 	kExit(); // Exit kernel cooperatively
 }
 
-void kMutexRAMGarbFrame(uint8_t mutexId, uint8_t * inBuffer)
+void kMutexRAMGetByte(uint8_t mutexId, uint8_t index, uint16_t * inBuffer)
 {
 	__disable_irq();
 
-	uint8_t spiOutBuffer[2];
-	spiOutBuffer[0] = 0x20 + mutexId;
-	spiOutBuffer[1] = 0x00;
-	HAL_SPI_TransmitReceive(&spi_handler, (uint8_t *) &spiOutBuffer, inBuffer, 2, 100);
+	uint16_t spiOutBuffer;
+	spiOutBuffer = 0x00 + (((uint16_t) mutexId) << 8) + index;
+	HAL_SPI_TransmitReceive(&spi_handler, (uint16_t *) &spiOutBuffer, inBuffer, 1, 100);
 	__enable_irq();
 	kExit(); // Exit kernel cooperatively
 }
 
-void kMutexRAMAddFrame(uint8_t mutexId, uint8_t * inBuffer)
+void kMutexRAMGarbFrame(uint8_t mutexId, uint16_t * inBuffer)
 {
 	__disable_irq();
 
-	uint8_t spiOutBuffer[2];
-	spiOutBuffer[0] = 0x30 + mutexId;
-	spiOutBuffer[1] = 0x00;
-	HAL_SPI_TransmitReceive(&spi_handler, (uint8_t *) &spiOutBuffer, inBuffer, 2, 100);
+	uint16_t spiOutBuffer;
+	spiOutBuffer = 0x2000 + (((uint16_t) mutexId) << 8);
+	HAL_SPI_TransmitReceive(&spi_handler, (uint16_t *) &spiOutBuffer, inBuffer, 1, 100);
+	__enable_irq();
+	kExit(); // Exit kernel cooperatively
+}
+
+void kMutexRAMAddFrame(uint8_t mutexId, uint16_t * inBuffer)
+{
+	__disable_irq();
+
+	uint16_t spiOutBuffer;
+	spiOutBuffer = 0x3000 + (((uint16_t) mutexId) << 8);
+	HAL_SPI_TransmitReceive(&spi_handler, (uint8_t *) &spiOutBuffer, inBuffer, 1, 100);
 
 	__enable_irq();
 	kExit(); // Exit kernel cooperatively
 }
 
-void kMutexLEDLight(uint8_t mutexId, uint8_t outByte, uint8_t flags, uint8_t * inBuffer) {
+void kMutexLEDLight(uint8_t mutexId, uint8_t outByte, uint8_t flags, uint16_t * inBuffer) {
 	__disable_irq();
 
-	uint8_t spiOutBuffer[2];
-	spiOutBuffer[0] = mutexId + (((uint16_t)flags ) << 4);
-	spiOutBuffer[1] = outByte;
-	HAL_SPI_TransmitReceive(&spi_handler, (uint8_t *) &spiOutBuffer, inBuffer, 2, 100);
-
-	__enable_irq();
-
-	kExit(); // Exit kernel cooperatively
-}
-
-void kMutexUARTAddByte(uint8_t mutexId, uint8_t outByte, uint8_t flags, uint8_t * inBuffer) {
-	__disable_irq();
-
-	uint8_t spiOutBuffer[2];
-	spiOutBuffer[0] = mutexId +  (((uint16_t)flags )<< 4);
-	spiOutBuffer[1] = outByte;
-	HAL_SPI_TransmitReceive(&spi_handler, (uint8_t *) &spiOutBuffer, inBuffer, 2, 100);
+	uint16_t spiOutBuffer;
+	spiOutBuffer = (((uint16_t) mutexId) << 8) + (((uint16_t)flags ) << 12) + outByte;
+	HAL_SPI_TransmitReceive(&spi_handler, (uint8_t *) &spiOutBuffer, inBuffer, 1, 100);
 
 	__enable_irq();
 
 	kExit(); // Exit kernel cooperatively
 }
 
-void kMutexUARTGetByte(uint8_t mutexId, uint8_t flags, uint8_t * inBuffer) {
+void kMutexUARTAddByte(uint8_t mutexId, uint8_t outByte, uint8_t flags, uint16_t * inBuffer) {
 	__disable_irq();
 
-	uint8_t spiOutBuffer[2];
-	spiOutBuffer[0] = mutexId + (((uint16_t) flags) << 4);
-	spiOutBuffer[1] = 0x00;
-	HAL_SPI_TransmitReceive(&spi_handler, (uint8_t *) &spiOutBuffer, inBuffer, 2, 100);
+	uint16_t spiOutBuffer;
+	spiOutBuffer = (((uint16_t) mutexId) << 8) +  (((uint16_t)flags ) << 12) + outByte;
+	HAL_SPI_TransmitReceive(&spi_handler, (uint8_t *) &spiOutBuffer, inBuffer, 1, 100);
 
 	__enable_irq();
 
 	kExit(); // Exit kernel cooperatively
 }
 
-void kTaskSuspend(uint8_t taskId, uint8_t flags, uint8_t * inBuffer) {
+void kMutexUARTGetByte(uint8_t mutexId, uint8_t flags, uint16_t * inBuffer) {
 	__disable_irq();
 
-	uint8_t spiOutBuffer[2];
-	spiOutBuffer[0] = taskId + (((uint16_t) flags) << 4);
-	spiOutBuffer[1] = ( 2 << 4);
-	HAL_SPI_TransmitReceive(&spi_handler, (uint8_t *) &spiOutBuffer, inBuffer, 2, 100);
+	uint16_t spiOutBuffer;
+	spiOutBuffer = (((uint16_t) mutexId) << 8) + (((uint16_t) flags) << 12);
+	HAL_SPI_TransmitReceive(&spi_handler, (uint8_t *) &spiOutBuffer, inBuffer, 1, 100);
 
-	if(inBuffer[0] + (((uint16_t)inBuffer[0] <<4 )) <= 15 && inBuffer[0] + (((uint16_t)inBuffer[0] <4 )) > 0) {
+	__enable_irq();
+
+	kExit(); // Exit kernel cooperatively
+}
+
+void kTaskSuspend(uint8_t taskId, uint8_t flags, uint16_t * inBuffer) {
+	__disable_irq();
+
+	uint16_t spiOutBuffer;
+	spiOutBuffer = (((uint16_t) taskId) << 8) + (((uint16_t) flags) << 12) + ( 2 << 4);
+	HAL_SPI_TransmitReceive(&spi_handler, (uint8_t *) &spiOutBuffer, inBuffer, 1, 100);
+
+	if(*inBuffer <= 15 && *inBuffer > 0) {
+		    speculatedNextTask = *inBuffer;
+		}
+
+	__enable_irq();
+
+	kExit(); // Exit kernel cooperatively
+}
+
+void kTaskWait(uint8_t taskId, uint8_t flags,  uint16_t * inBuffer) {
+	__disable_irq();
+
+	uint16_t spiOutBuffer;
+	spiOutBuffer = (((uint16_t) taskId) << 8) + (((uint16_t) flags) << 12) + ( 3 << 4);
+	HAL_SPI_TransmitReceive(&spi_handler, (uint8_t *) &spiOutBuffer, inBuffer, 1, 100);
+
+	if(*inBuffer <= 15 && *inBuffer > 0) {
+		    speculatedNextTask = *inBuffer;
+		}
+
+	__enable_irq();
+
+	kExit(); // Exit kernel cooperatively
+}
+
+void kTaskReady(uint8_t taskId, uint8_t flags, uint16_t * inBuffer) {
+	__disable_irq();
+
+	uint16_t spiOutBuffer;
+	spiOutBuffer = (((uint16_t) taskId) << 8) + (((uint16_t) flags) << 12) + ( 1 << 4);
+	HAL_SPI_TransmitReceive(&spi_handler, (uint8_t *) &spiOutBuffer, inBuffer, 1, 100);
+
+	if(*inBuffer <= 15 && *inBuffer > 0) {
 		speculatedNextTask = *inBuffer;
 	}
 
@@ -156,16 +178,15 @@ void kTaskSuspend(uint8_t taskId, uint8_t flags, uint8_t * inBuffer) {
 	kExit(); // Exit kernel cooperatively
 }
 
-void kTaskWait(uint8_t taskId, uint8_t flags,  uint8_t * inBuffer) {
+void kTaskKill(uint8_t taskId, uint8_t flags, uint16_t * inBuffer) {
 	__disable_irq();
 
-	uint8_t spiOutBuffer[2];
-	spiOutBuffer[0] = taskId + (((uint16_t) flags) << 4);
-	spiOutBuffer[1] = ( 3 << 4);
-	HAL_SPI_TransmitReceive(&spi_handler, (uint8_t *) &spiOutBuffer, inBuffer, 2, 100);
+	uint16_t spiOutBuffer;
+	spiOutBuffer = (((uint16_t) taskId) << 8) + (((uint16_t) flags) << 12) + ( 4 << 4);
+	HAL_SPI_TransmitReceive(&spi_handler, (uint8_t *) &spiOutBuffer, inBuffer, 1, 100);
 
-	if(inBuffer[0] + (((uint16_t)inBuffer[0] <<4 )) <= 15 && inBuffer[0] + (((uint16_t)inBuffer[0] <4 )) > 0) {
-		speculatedNextTask = *inBuffer;
+	if(*inBuffer <= 15 && *inBuffer > 0) {
+			speculatedNextTask = *inBuffer;
 	}
 
 	__enable_irq();
@@ -173,16 +194,15 @@ void kTaskWait(uint8_t taskId, uint8_t flags,  uint8_t * inBuffer) {
 	kExit(); // Exit kernel cooperatively
 }
 
-void kTaskReady(uint8_t taskId, uint8_t flags, uint8_t * inBuffer) {
+void kTaskIncreasePriority(uint8_t taskId, uint8_t flags, uint8_t priority, uint16_t * inBuffer) {
 	__disable_irq();
 
-	uint8_t spiOutBuffer[2];
-	spiOutBuffer[0] = taskId + (((uint16_t) flags) << 4);
-	spiOutBuffer[1] = ( 1 << 4);
-	HAL_SPI_TransmitReceive(&spi_handler, (uint8_t *) &spiOutBuffer, inBuffer, 2, 100);
+	uint16_t spiOutBuffer;
+	spiOutBuffer = (((uint16_t) taskId) << 8) + (((uint16_t) flags) << 12) + ( 5 << 4) + priority;
+	HAL_SPI_TransmitReceive(&spi_handler, (uint8_t *) &spiOutBuffer, inBuffer, 1, 100);
 
-	if(inBuffer[0] + (((uint16_t)inBuffer[0] <<4 )) <= 15 && inBuffer[0] + (((uint16_t)inBuffer[0] <4 )) > 0) {
-		speculatedNextTask = *inBuffer;
+	if(*inBuffer <= 15 && *inBuffer > 0) {
+			speculatedNextTask = *inBuffer;
 	}
 
 	__enable_irq();
@@ -190,16 +210,15 @@ void kTaskReady(uint8_t taskId, uint8_t flags, uint8_t * inBuffer) {
 	kExit(); // Exit kernel cooperatively
 }
 
-void kTaskKill(uint8_t taskId, uint8_t flags, uint8_t * inBuffer) {
+void kTaskIncreaseExehit(uint8_t taskId, uint8_t flags, uint8_t exehit, uint16_t * inBuffer) {
 	__disable_irq();
 
-	uint8_t spiOutBuffer[2];
-	spiOutBuffer[0] = taskId + (((uint16_t) flags) << 4);
-	spiOutBuffer[1] = ( 4 << 4);
-	HAL_SPI_TransmitReceive(&spi_handler, (uint8_t *) &spiOutBuffer, inBuffer, 2, 100);
+	uint16_t spiOutBuffer;
+	spiOutBuffer = (((uint16_t) taskId) << 8) + (((uint16_t) flags) << 12) + ( 6 << 4) + exehit;
+	HAL_SPI_TransmitReceive(&spi_handler, (uint8_t *) &spiOutBuffer, inBuffer, 1, 100);
 
-	if(inBuffer[0] + (((uint16_t)inBuffer[0] <<4 )) <= 15 && inBuffer[0] + (((uint16_t)inBuffer[0] <4 )) > 0) {
-		speculatedNextTask = *inBuffer;
+	if(*inBuffer <= 15 && *inBuffer > 0){
+			speculatedNextTask = *inBuffer;
 	}
 
 	__enable_irq();
@@ -207,16 +226,15 @@ void kTaskKill(uint8_t taskId, uint8_t flags, uint8_t * inBuffer) {
 	kExit(); // Exit kernel cooperatively
 }
 
-void kTaskIncreasePriority(uint8_t taskId, uint8_t flags, uint8_t priority, uint8_t * inBuffer) {
+void kRawComm(uint8_t moduleId, uint8_t flags, uint8_t payload, uint16_t * inBuffer) {
 	__disable_irq();
 
-	uint8_t spiOutBuffer[2];
-	spiOutBuffer[1] = taskId + (((uint16_t) flags) << 4);
-	spiOutBuffer[0] = ( 5 << 4) + priority;
-	HAL_SPI_TransmitReceive(&spi_handler, (uint8_t *) &spiOutBuffer, inBuffer, 2, 100);
+	uint16_t spiOutBuffer;
+	spiOutBuffer = (((uint16_t) moduleId) << 8) + (((uint16_t) flags) << 12) +  payload;
+	HAL_SPI_TransmitReceive(&spi_handler, (uint8_t *) &spiOutBuffer, inBuffer, 1, 100);
 
-	if(inBuffer[0] + (((uint16_t)inBuffer[0] <<4 )) <= 15 && inBuffer[0] + (((uint16_t)inBuffer[0] <4 )) > 0) {
-		speculatedNextTask = *inBuffer;
+	if(*inBuffer <= 15 && *inBuffer > 0) {
+			speculatedNextTask = *inBuffer;
 	}
 
 	__enable_irq();
@@ -224,54 +242,82 @@ void kTaskIncreasePriority(uint8_t taskId, uint8_t flags, uint8_t priority, uint
 	kExit(); // Exit kernel cooperatively
 }
 
-void kTaskIncreaseExehit(uint8_t taskId, uint8_t flags, uint8_t exehit, uint8_t * inBuffer) {
+void kBlankComm ( uint16_t * inBuffer) {
 	__disable_irq();
 
-	uint8_t spiOutBuffer[2];
-	spiOutBuffer[1] = taskId + (((uint16_t) flags) << 4);
-	spiOutBuffer[0] = ( 6 << 4) + exehit;
-	HAL_SPI_TransmitReceive(&spi_handler, (uint8_t *) &spiOutBuffer, inBuffer, 2, 100);
+	uint16_t spiOutBuffer;
+	spiOutBuffer = 0x0000;
 
-	if(inBuffer[0] + (((uint16_t)inBuffer[0] <<4 )) <= 15 && inBuffer[0] + (((uint16_t)inBuffer[0] <4 )) > 0) {
-		speculatedNextTask = *inBuffer;
+	HAL_SPI_TransmitReceive(&spi_handler, (uint16_t *) &spiOutBuffer, inBuffer, 2, 100);
+
+	if(*inBuffer <= 15 && *inBuffer > 0) {
+			speculatedNextTask = *inBuffer;
 	}
-
 	__enable_irq();
 
 	kExit(); // Exit kernel cooperatively
 }
 
-void kRawComm(uint8_t moduleId, uint8_t flags, uint8_t payload, uint8_t * inBuffer) {
-	__disable_irq();
-
-	uint8_t spiOutBuffer[2];
-	spiOutBuffer[0] = moduleId + (((uint16_t) flags) << 4);
-	spiOutBuffer[1] = payload;
-	HAL_SPI_TransmitReceive(&spi_handler, (uint8_t *) &spiOutBuffer, inBuffer, 2, 100);
-
-	if(inBuffer[0] + (((uint16_t)inBuffer[0] <<4 )) <= 15 && inBuffer[0] + (((uint16_t)inBuffer[0] <4 )) > 0) {
-		speculatedNextTask = *inBuffer;
-	}
-
-	__enable_irq();
-
-	kExit(); // Exit kernel cooperatively
+Queue * Queue_init(int N){
+    Queue * q = malloc (sizeof(Queue) );
+    q->size = N;
+    q->buffer = malloc( N * sizeof(void*) );
+    q->empty =  N;
+    q->full=  0;
+    q->extract_pos = 0;
+    q->insert_pos = 0;
+    return q;
 }
 
-void kBlankComm ( uint8_t * inBuffer) {
-	__disable_irq();
+void Queue_destroy(Queue * q){
+    free ( (*q).buffer);
+    free(q);
+}
 
-	uint8_t spiOutBuffer[2];
-	spiOutBuffer[0] = 0x00;
-	spiOutBuffer[1] = 0x00;
-	HAL_SPI_TransmitReceive(&spi_handler, (uint8_t*) &spiOutBuffer, inBuffer, 2, 100);
+void Queue_insert(Queue * q, void * item){
+    kSemWait(13, 2);
+    q->buffer[q->insert_pos] = item;
+    q->insert_pos =  (q->insert_pos + 1) % q->size;
+    kSemPost(14, 2);
+}
 
-	if(inBuffer[0] + (((uint16_t)inBuffer[0] <<4 )) <= 15 && inBuffer[0] + (((uint16_t)inBuffer[0] <4 )) > 0) {
-		speculatedNextTask = *inBuffer;
-	}
+void * Queue_extract(Queue * q){
+    void * item;
+    kSemWait(14, 1);
+    item = &(q->buffer[q->extract_pos]);
+    q->extract_pos =  (q->extract_pos + 1) % q->size;
+    kSemPost(13, 1);
+    return item;
+}
 
-	__enable_irq();
+void kSemWait( uint16_t semId, uint16_t nodeId ) {
+	 uint16_t inBuffer;
+	 uint16_t outBuffer;
+	 do {
+		 __disable_irq();
+		 outBuffer = 0xC000 + (semId << 8) + (nodeId << 12);
+		 HAL_SPI_TransmitReceive(&spi_handler, (uint16_t *)&outBuffer, (uint16_t *) &inBuffer, 1, 100);
+		 outBuffer = 0x0000 + (semId << 8) + 0x0020 + (nodeId << 12);
+		 HAL_SPI_TransmitReceive(&spi_handler, (uint16_t *)&outBuffer, (uint16_t *) &inBuffer, 1, 100);
+		 __enable_irq();
+	 }while(inBuffer !=  0x0000 + nodeId  && inBuffer != 0x2000 + nodeId);
+	 outBuffer = 0xC0FF + (semId << 8) + (nodeId << 12);
+	 HAL_SPI_TransmitReceive(&spi_handler, (uint16_t *)&outBuffer, (uint16_t *) &inBuffer, 1, 100);
 
-	kExit(); // Exit kernel cooperatively
+}
+
+void kSemPost( uint8_t semId, uint16_t nodeId ) {
+	 uint16_t inBuffer;
+	 uint16_t outBuffer;
+	 do {
+		 __disable_irq();
+		 outBuffer = 0xC000 + (semId << 8) + (nodeId << 12);
+		 HAL_SPI_TransmitReceive(&spi_handler, (uint16_t *)&outBuffer, (uint16_t *) &inBuffer, 1, 100);
+		 outBuffer =  0x0000 + (semId << 8) + 0x0020  + (nodeId << 12);
+		 HAL_SPI_TransmitReceive(&spi_handler, (uint16_t *)&outBuffer, (uint16_t *) &inBuffer, 1, 100);
+		 __enable_irq();
+	 }while(inBuffer !=  0x0000 + nodeId  && inBuffer != 0x1000 + nodeId);
+	 outBuffer = 0xC0FF + (semId << 8) + (nodeId << 12);
+	 HAL_SPI_TransmitReceive(&spi_handler, (uint16_t *)&outBuffer, (uint16_t *) &inBuffer, 1, 100);
 }
 

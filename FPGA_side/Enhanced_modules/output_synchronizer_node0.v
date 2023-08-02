@@ -2,6 +2,8 @@ module output_syncronizer_node0 (
 	input [7:0] next_task,
 	input [15:0] peripheral0,
 	input [15:0] peripheral1,
+	input [15:0] peripheral2,
+	input [15:0] peripheral3,
 	output wire [15:0] out
 	);
 	
@@ -22,6 +24,12 @@ module output_syncronizer_node0 (
 			out_node <= peripheral1;
 		end
 		else if ((peripheral0 & 16'b0000111100000000) == 16'b0000000100000000) begin 
+			out_node <= peripheral0;
+		end
+		else if ((peripheral2 & 16'b0000111100000000) == 16'b0000000100000000) begin 
+			out_node <= peripheral0;
+		end
+		else if ((peripheral3 & 16'b0000111100000000) == 16'b0000000100000000) begin 
 			out_node <= peripheral0;
 		end
 		else begin

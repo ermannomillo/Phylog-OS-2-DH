@@ -1,6 +1,7 @@
 
 module RAM_mutex(
 		input wire CLK,
+		input RST,
 		input [15:0] in_op_node0,
 		input [15:0] in_op_node1,
 		output wire [15:0] out_node
@@ -166,57 +167,61 @@ module RAM_mutex(
 					
 				endcase
 		end
-		
 
-		always @(negedge CLK ) begin
-			frame_pointer <= next_frame_pointer;
-			stack_pointer <= next_stack_pointer;
-		end
-
-		always @(posedge CLK ) begin : Sequential
-			case(lock) 
-				
-					2'b00 : begin 
-						if((in_op_node0 ^ start_sequence) <= 15) begin
-							out_synchro <= 16'b0000000100000000;
-							lock <= next_lock;
-						end
-						else if((in_op_node0 & 16'b0011111100000000) == 3072) begin  // XX00 1100 XXXX XXXX : Read
-							out_synchro <= { 8'b00000001, matrix[(in_op_node0 & 16'b0000000011111111) + frame_pointer]};
-							lock <= next_lock;
-						end
-						else begin 
-							out_synchro <= 16'b0000000100000000;
-							lock <= next_lock;
-						end
-					end
+		always @(posedge CLK or posedge RST) begin
+        if (RST) begin
+            // Initialize all the registers to their initial values
+            lock <= 2'b11;          // Set to "not locked"
+            frame_pointer <= 8'b0;  // Set to initial frame pointer
+            stack_pointer <= 8'b0;  // Set to initial stack pointer
+            out_synchro <= 16'b0;   // Set output to zero during RST
+        end else begin
+				case(lock) 
 					
-					2'b01 : begin 
-						if((in_op_node1 ^ start_sequence) <= 15) begin
-							out_synchro <=  16'b0000001000000000;
+						2'b00 : begin 
+							if((in_op_node0 ^ start_sequence) <= 15) begin
+								out_synchro <= 16'b0000000100000000;
+								lock <= next_lock;
+							end
+							else if((in_op_node0 & 16'b0011111100000000) == 3072) begin  // XX00 1100 XXXX XXXX : Read
+								out_synchro <= { 8'b00000001, matrix[(in_op_node0 & 16'b0000000011111111) + frame_pointer]};
+								lock <= next_lock;
+							end
+							else begin 
+								out_synchro <= 16'b0000000100000000;
+								lock <= next_lock;
+							end
+						end
+						
+						2'b01 : begin 
+							if((in_op_node1 ^ start_sequence) <= 15) begin
+								out_synchro <=  16'b0000001000000000;
+								lock <= next_lock;
+							end
+							else if((in_op_node1 & 16'b0011111100000000) == 3072) begin  // XX00 1100 XXXX XXXX : Read
+								out_synchro <= { 8'b00000010, matrix[(in_op_node0 & 16'b0000000011111111)+ frame_pointer]};
+								lock <= next_lock;
+							end
+							else begin 
+								out_synchro <= 16'b0000001000000000;
+								lock <= next_lock;
+							end
+						end
+						
+						2'b11 : begin 
+							out_synchro <= 16'b0;
 							lock <= next_lock;
 						end
-						else if((in_op_node1 & 16'b0011111100000000) == 3072) begin  // XX00 1100 XXXX XXXX : Read
-							out_synchro <= { 8'b00000010, matrix[(in_op_node0 & 16'b0000000011111111)+ frame_pointer]};
+						
+						default : begin
+							out_synchro <= 16'b0;
 							lock <= next_lock;
 						end
-						else begin 
-							out_synchro <= 16'b0000001000000000;
-							lock <= next_lock;
-						end
-					end
 					
-					2'b11 : begin 
-						out_synchro <= 16'b0;
-						lock <= next_lock;
-					end
-					
-					default : begin
-						out_synchro <= 16'b0;
-						lock <= next_lock;
-					end
-				
-			endcase
+				endcase
+				frame_pointer <= next_frame_pointer;
+				stack_pointer <= next_stack_pointer;
+			end
 		end
 		
 		assign out_node = out_synchro;

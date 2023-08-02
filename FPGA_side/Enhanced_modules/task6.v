@@ -1,5 +1,6 @@
 module task6(
     input CLK,
+	 input RST,
     input [15:0] in_op,
     output wire [7:0] out_sorter
     );
@@ -14,6 +15,7 @@ module task6(
     reg [7:0] next_exe_hit;
     reg [7:0] id_plus_prty;
     reg [31:0] r_counter = 32'b0;
+	 reg [31:0] next_r_counter = 32'b0;
 
     localparam task_id = 8'b00000111;
 
@@ -25,14 +27,7 @@ module task6(
     // 11 | Terminated
     // ---------------------
 
-    always @(posedge CLK) begin
-        r_counter <= r_counter + 1;
 
-        if (r_counter == 10000) begin
-            r_counter <= 0;
-            //next_priority <= task_priority + 1;
-        end
-    end
 
     always @(*) begin
         // Operation cases
@@ -65,14 +60,14 @@ module task6(
             16'b0000011101110000: begin // Execute
                 if (state == 2'b00 && exe_hit > 0) begin
                     next_exe_hit = exe_hit - 1;
-                    r_counter <= 0;
+                    next_r_counter <= 0;
                 end
             end
 			
             16'b0000011111110000: begin // Finish execution
                 if (state == 2'b00 && exe_hit > 0) begin
                     next_exe_hit = exe_hit - 1;
-                    r_counter <= 0;
+                    next_r_counter <= 0;
                 end
             end
 			
@@ -80,25 +75,34 @@ module task6(
                 next_state = state;
                 next_priority = task_priority;
                 next_exe_hit = exe_hit;
+					 next_r_counter = r_counter;
             end
         endcase
     end
 
-    always @(posedge CLK) begin
-        if (state == 2'b00) begin
-            id_plus_prty = {task_id, task_priority};
-        end else begin
-            id_plus_prty = 8'b00000000;
-        end
-        state <= next_state;
-    end
-
-    always @(posedge CLK) begin
-        task_priority <= next_priority;
-    end
-
-    always @(posedge CLK) begin
-        exe_hit <= next_exe_hit;
+    always @(posedge CLK or posedge RST) begin
+        if (RST) begin
+            // RST the FSM to the initial state and values
+            state <= 2'b00;
+            task_priority <= 8'b00000000;
+            exe_hit <= 8'b10000000;
+        end else begin 
+			  if (state == 2'b00) begin
+					id_plus_prty = {task_id, task_priority};
+			  end else begin
+					id_plus_prty = 8'b00000000;
+			  end
+			  if (next_r_counter == 10000) begin
+					r_counter <= 0;
+					task_priority <= next_priority;
+			  end else if (next_r_counter == 0) begin
+					r_counter <= 0;
+					task_priority <= next_priority + 1;	
+			  end
+			  state <= next_state;		  
+			  exe_hit <= next_exe_hit;
+			  r_counter <= r_counter + 1;
+		  end
     end
 
     assign out_sorter = id_plus_prty;

@@ -1,6 +1,7 @@
 
 module LED_mutex(
 		input  wire CLK,
+		input RST,
 		input [15:0] in_op_node0,
 		input [15:0] in_op_node1,
 		output wire [7:0] out_peripheral
@@ -82,44 +83,51 @@ module LED_mutex(
 			endcase
 		end
 		
-		always @(posedge CLK ) begin : Sequential
-			case(lock) 
+		always @(posedge CLK or posedge RST) begin
+        if (RST) begin
+            // RST the FSM and other registers to their initial values
+            lock <= 2'b11;
+            out_driver <= 0;
 				
-					2'b00 : begin 	 
-						if((in_op_node0 ^ start_sequence) <= 15) begin
+			end else begin 
+				case(lock) 
+					
+						2'b00 : begin 	 
+							if((in_op_node0 ^ start_sequence) <= 15) begin
+								out_driver <= 0;
+								lock <= next_lock;
+							end
+							else begin
+								if(in_op_node0 != 0) begin
+									out_driver <= in_op_node0;
+								end
+								lock <= next_lock;
+							end
+						end
+						
+						2'b01 : begin 
+							if((in_op_node1 ^ start_sequence) <= 15) begin
+								out_driver <= 0;
+								lock <= next_lock;
+							end
+							else begin
+								if(in_op_node1 != 0) begin
+									out_driver <= in_op_node1;
+								end
+								lock <= next_lock;
+							end
+						end	
+						2'b11 : begin 
 							out_driver <= 0;
 							lock <= next_lock;
 						end
-						else begin
-							if(in_op_node0 != 0) begin
-								out_driver <= in_op_node0;
-							end
+						
+						default : begin
 							lock <= next_lock;
 						end
-					end
 					
-					2'b01 : begin 
-						if((in_op_node1 ^ start_sequence) <= 15) begin
-							out_driver <= 0;
-							lock <= next_lock;
-						end
-						else begin
-							if(in_op_node1 != 0) begin
-								out_driver <= in_op_node1;
-							end
-							lock <= next_lock;
-						end
-					end	
-					2'b11 : begin 
-						out_driver <= 0;
-						lock <= next_lock;
-					end
-					
-					default : begin
-						lock <= next_lock;
-					end
-				
-			endcase
+				endcase
+			end
 		end
 		
 		assign out_peripheral = out_driver;

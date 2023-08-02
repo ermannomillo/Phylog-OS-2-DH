@@ -1,5 +1,6 @@
 module ESPIC(
 		input wire CLK,
+		input RST,
 		input wire ext_signal,
 		input [15:0] in_op_node0,
 		input [15:0] in_op_node1,

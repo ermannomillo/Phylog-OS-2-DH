@@ -34,16 +34,23 @@ https://fpgasoftware.intel.com/eula.
 	(port
 		(pt 0 48)
 		(input)
-		(text "in_op_node0[15..0]" (rect 0 0 74 12)(font "Arial" ))
-		(text "in_op_node0[15..0]" (rect 21 43 95 55)(font "Arial" ))
-		(line (pt 0 48)(pt 16 48)(line_width 3))
+		(text "RST" (rect 0 0 20 12)(font "Arial" ))
+		(text "RST" (rect 21 43 41 55)(font "Arial" ))
+		(line (pt 0 48)(pt 16 48)(line_width 1))
 	)
 	(port
 		(pt 0 64)
 		(input)
-		(text "in_op_node1[15..0]" (rect 0 0 73 12)(font "Arial" ))
-		(text "in_op_node1[15..0]" (rect 21 59 94 71)(font "Arial" ))
+		(text "in_op_node0[15..0]" (rect 0 0 74 12)(font "Arial" ))
+		(text "in_op_node0[15..0]" (rect 21 59 95 71)(font "Arial" ))
 		(line (pt 0 64)(pt 16 64)(line_width 3))
+	)
+	(port
+		(pt 0 80)
+		(input)
+		(text "in_op_node1[15..0]" (rect 0 0 73 12)(font "Arial" ))
+		(text "in_op_node1[15..0]" (rect 21 75 94 87)(font "Arial" ))
+		(line (pt 0 80)(pt 16 80)(line_width 3))
 	)
 	(port
 		(pt 264 32)

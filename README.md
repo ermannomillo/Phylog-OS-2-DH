@@ -12,4 +12,4 @@ Specifically, the modules which were implemented are a task scheduler and proces
 
 Besides reducing the complexity of setting up an operative solution, one of the main results is also a remarkably low latency between commands sent by the nodes and the associated results processed by the orchestrator. This outcome is guaranteed by parallel algorithms and speculative computation techniques.
 
-![Complete thesis](https://drive.google.com/file/d/1bY7tkP6s6qk5ee2cuwGg_NDy2IiQpG1j/view)
+[Complete project](https://drive.google.com/file/d/1bY7tkP6s6qk5ee2cuwGg_NDy2IiQpG1j/view)

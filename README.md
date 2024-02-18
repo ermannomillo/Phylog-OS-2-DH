@@ -11,5 +11,9 @@ This last comprises CPU-based processing nodes and an FPGA orchestrator. The lat
 Specifically, the modules which were implemented are a task scheduler and process control block, an IRQ controller and various kinds of mutexes and semaphores, specialized to applications.
 
 Besides reducing the complexity of setting up an operative solution, one of the main results is also a remarkably low latency between commands sent by the nodes and the associated results processed by the orchestrator. This outcome is guaranteed by parallel algorithms and speculative computation techniques.
+<br/><br/>
+[![Complete thesis](https://img.shields.io/badge/Complete%20project-View%20here-blue)](https://drive.google.com/file/d/1bY7tkP6s6qk5ee2cuwGg_NDy2IiQpG1j/view)
+<br/><br/>
 
-[Complete project](https://drive.google.com/file/d/1bY7tkP6s6qk5ee2cuwGg_NDy2IiQpG1j/view)
+
+![alt text](https://github.com/ermannomillo/Phylog_OS_2_DHX/blob/main/images/operating_system.jpg?raw=true)

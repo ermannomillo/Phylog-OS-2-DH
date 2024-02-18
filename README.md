@@ -1,6 +1,9 @@
 
 ![alt text](https://github.com/ermannomillo/Phylog_OS_2_DHX/blob/main/images/logo_phylog_OS_IIDHX.jpg?raw=true)
 
+<br/>
+<br/>
+
 This thesis presents an HDL development methodology for composing hardware-accelerated kernels. These are specifically tailored for integration with operating systems for embedded systems.
 
 At this time, interest on hardware implementation of system tasks is growing, as they have proved effective in many critical, resource-intensive and highly specialized scenarios, especially data centres.

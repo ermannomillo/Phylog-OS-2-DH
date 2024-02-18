@@ -15,7 +15,7 @@ Besides reducing the complexity of setting up an operative solution, one of the 
 <br/>
 <br/>
 
-[![Complete thesis](https://img.shields.io/badge/Complete%20project-View%20here-blue)](https://drive.google.com/file/d/1bY7tkP6s6qk5ee2cuwGg_NDy2IiQpG1j/view)
+[![Complete thesis](https://img.shields.io/badge/Complete%20thesis-View%20in%20Google%20Drive-blue)](https://drive.google.com/file/d/1bY7tkP6s6qk5ee2cuwGg_NDy2IiQpG1j/view)
 
 <br/>
 <br/>
